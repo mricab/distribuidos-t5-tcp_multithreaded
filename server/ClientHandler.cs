@@ -62,11 +62,11 @@ namespace server
 
                         }
                     }
-                    catch (IOException)
+                    catch (IOException)  // Timeout
                     {
                         Console.WriteLine("Handler: Timeout.");
                         ContinueProcess = false;
-                    } // Timeout
+                    }
                     catch (SocketException)
                     {
                         Console.WriteLine("Handler: Conection is broken!");

@@ -16,10 +16,6 @@ namespace server
         private static SynchronousSocketListener SocketListener;
         private static SynchronousSocketReclaimer SocketReclaimer;
 
-        // Threads
-        // ThreadReclaim = new Thread(new ThreadStart(Reclaim));
-        // ThreadReclaim.Start();
-
 
         public static int Main(String[] args)
         {
@@ -27,6 +23,9 @@ namespace server
             ClientSockets = new ArrayList();
             SocketReclaimer = new SynchronousSocketReclaimer(ref ClientSockets);
             SocketListener = new SynchronousSocketListener(ref ClientSockets);
+
+            // Events subscriptions
+            SocketListener.ClientAccepted += OnClientAccepted;
 
             // Start Socket Reclaimer
             SocketReclaimer.Enable();
@@ -52,6 +51,17 @@ namespace server
 
             return 0;
         }
+
+        private static void OnClientAccepted(object source, ClientAcceptedEventArgs e)
+        {
+            lock (ClientSockets.SyncRoot)
+            {
+                int i = ClientSockets.Add(new ClientHandler(e.Client));
+                ((ClientHandler)ClientSockets[i]).Start();
+            }
+        }
+
+
     }
 
 }

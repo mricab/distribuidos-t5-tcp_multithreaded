@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Collections;
@@ -7,9 +8,28 @@ using System.Threading;
 
 namespace server
 {
+    public class ClientAcceptedEventArgs : EventArgs
+    {
+        public TcpClient Client { get; set; }
+    }
+
+
     public class SynchronousSocketListener
     {
         private static ArrayList ClientSockets;
+
+        public delegate void ClientAcceptedEventHandler(object source, ClientAcceptedEventArgs args);  //Delegate
+
+        public event ClientAcceptedEventHandler ClientAccepted;  // Event
+
+        protected virtual void OnClientAccepted(TcpClient clientSocket) //Event Raiser
+        {
+            if(ClientAccepted != null)
+            {
+                ClientAccepted(this, new ClientAcceptedEventArgs() { Client = clientSocket });
+            }
+        }
+
 
         public SynchronousSocketListener(ref ArrayList ClientList)
         {
@@ -20,7 +40,7 @@ namespace server
         {
             int port = (int)portNum;
 
-            TcpListener listener = new TcpListener(port);
+            TcpListener listener = new TcpListener(IPAddress.Loopback, port);
             try
             {
                 listener.Start();
@@ -29,7 +49,7 @@ namespace server
                 int ClientNbr = 0;
 
                 // Start listening for connections.
-                Console.WriteLine("Listening for a connection...");
+                Console.WriteLine("Listening for connections...");
                 while (TestingCycle > 0)
                 {
 
@@ -40,11 +60,7 @@ namespace server
                         Console.WriteLine("Client#{0} accepted!", ++ClientNbr);
 
                         // Processing Incoming clients.
-                        lock (ClientSockets.SyncRoot)
-                        {
-                            int i = ClientSockets.Add(new ClientHandler(client));
-                            ((ClientHandler)ClientSockets[i]).Start();
-                        }
+                        OnClientAccepted(client);
                         --TestingCycle;
                     }
                     else

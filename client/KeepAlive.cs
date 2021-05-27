@@ -11,7 +11,6 @@ namespace client
     {
 
         static TcpClient ClientSocket;
-        Thread ThreadKeepAlive;
         static bool continueProcess = false;
 
         public KeepAlive(TcpClient client)
@@ -40,7 +39,7 @@ namespace client
                     try
                     {
                         Console.WriteLine("Sending keep message");
-                        string DataToSend = "Keep";
+                        string DataToSend = "keep";
                         Byte[] sendBytes = Encoding.ASCII.GetBytes(DataToSend);
                         networkStream.Write(sendBytes, 0, sendBytes.Length);
 
