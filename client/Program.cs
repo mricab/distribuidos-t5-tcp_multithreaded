@@ -43,14 +43,15 @@ namespace client
                         Byte[] sendBytes = Encoding.ASCII.GetBytes(DataToSend);
                         networkStream.Write(sendBytes, 0, sendBytes.Length);
 
-                        // Reads the NetworkStream into a byte buffer.
+                        // Reads the NetworkStream into byte buffer.
                         byte[] bytes = new byte[tcpClient.ReceiveBufferSize];
                         int BytesRead = networkStream.Read(bytes, 0, (int)tcpClient.ReceiveBufferSize);
 
                         // Returns the data received from the host to the console.
                         string returndata = Encoding.ASCII.GetString(bytes, 0, BytesRead);
-                        Console.WriteLine("This is what the host returned to you: \r\n{0}", returndata);
+                        Console.WriteLine("Returned by host: \r\n{0}", returndata);
                     }
+                    KeepAlive.Stop();
                     networkStream.Close();
                     tcpClient.Close();
                 }

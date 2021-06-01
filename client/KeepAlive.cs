@@ -25,6 +25,11 @@ namespace client
             ThreadKeepAlive.Start();
         }
 
+        public static void Stop()
+        {
+            continueProcess = false;
+        }
+
         public static void Process()
         {
             NetworkStream networkStream = ClientSocket.GetStream();
@@ -38,7 +43,7 @@ namespace client
                 {
                     try
                     {
-                        Console.WriteLine("Sending keep message");
+                        //Console.WriteLine("Sending keep message");
                         string DataToSend = "keep";
                         Byte[] sendBytes = Encoding.ASCII.GetBytes(DataToSend);
                         networkStream.Write(sendBytes, 0, sendBytes.Length);
@@ -57,11 +62,6 @@ namespace client
                 }
             }
             Console.WriteLine("Keep Alive process ended.");
-        }
-
-        public void Stop()
-        {
-            continueProcess = false;
         }
 
     }
