@@ -19,9 +19,9 @@ namespace server
 
         public void StartReclaiming()
         {
+            Console.WriteLine("Reclaimer up.");
             while (ContinueReclaim)
             {
-                //Console.WriteLine("Reclaiming...");
                 lock (ClientSockets.SyncRoot)
                 {
                     for (int x = ClientSockets.Count - 1; x >= 0; x--)

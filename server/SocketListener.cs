@@ -8,28 +8,23 @@ using System.Threading;
 
 namespace server
 {
+    public interface ISynchronousSocketListener
+    {
+        event EventHandler<ClientAcceptedEventArgs> ClientAccepted; //Event and Delegate
+    }
+
     public class ClientAcceptedEventArgs : EventArgs
     {
         public TcpClient Client { get; set; }
     }
 
 
-    public class SynchronousSocketListener
+    public class SynchronousSocketListener : ISynchronousSocketListener
     {
         private static ArrayList ClientSockets;
-
-        public delegate void ClientAcceptedEventHandler(object source, ClientAcceptedEventArgs args);  //Delegate
-
-        public event ClientAcceptedEventHandler ClientAccepted;  // Event
-
-        protected virtual void OnClientAccepted(TcpClient clientSocket) //Event Raiser
-        {
-            if(ClientAccepted != null)
-            {
-                ClientAccepted(this, new ClientAcceptedEventArgs() { Client = clientSocket });
-            }
-        }
-
+        private static bool ContinueListen;
+        private static TcpListener Listener;
+        public event EventHandler<ClientAcceptedEventArgs> ClientAccepted;
 
         public SynchronousSocketListener(ref ArrayList ClientList)
         {
@@ -40,45 +35,62 @@ namespace server
         {
             int port = (int)portNum;
 
-            TcpListener listener = new TcpListener(IPAddress.Loopback, port);
+            Listener = new TcpListener(IPAddress.Loopback, port);
             try
             {
-                listener.Start();
-
-                int TestingCycle = 3;
+                Listener.Start();
                 int ClientNbr = 0;
 
                 // Start listening for connections.
                 Console.WriteLine("Listening for connections...");
-                while (TestingCycle > 0)
+                while (ContinueListen)
                 {
-
-                    TcpClient client = listener.AcceptTcpClient();
+                    TcpClient client = Listener.AcceptTcpClient();
 
                     if (client != null)
                     {
-                        Console.WriteLine("Client#{0} accepted!", ++ClientNbr);
-
                         // Processing Incoming clients.
+                        Console.WriteLine("Client#{0} accepted!", ++ClientNbr);
                         OnClientAccepted(client);
-                        --TestingCycle;
                     }
                     else
                     {
                         break;
                     }
                 }
-                listener.Stop();
+                Listener.Stop();
 
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("Listener interrupted!");
             }
             catch (Exception e)
             {
                 Console.WriteLine("SocketListener: Can't accept conections.");
                 Console.WriteLine(e.ToString());
             }
-
             Console.WriteLine("\nNot listening anymore.");
 
+        }
+
+        public void Disable()
+        {
+            ContinueListen = false;
+            Listener.Stop();
+        }
+
+        public void Enable()
+        {
+            ContinueListen = true;
+        }
+
+        protected virtual void OnClientAccepted(TcpClient clientSocket) //Event Raiser
+        {
+            if (ClientAccepted != null)
+            {
+                ClientAccepted(this, new ClientAcceptedEventArgs() { Client = clientSocket });
+            }
         }
 
     } // class SynchronousSocketListener

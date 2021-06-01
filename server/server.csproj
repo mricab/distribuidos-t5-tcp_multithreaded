@@ -35,6 +35,7 @@
     <Compile Include="SocketListener.cs" />
     <Compile Include="ClientHandler.cs" />
     <Compile Include="SocketReclaimer.cs" />
+    <Compile Include="Server.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

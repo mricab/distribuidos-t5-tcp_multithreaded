@@ -10,58 +10,56 @@ namespace server
 
     class MainClass
     {
-        // Propieties
-        private const int ListeningPort = 10116;
-        private static ArrayList ClientSockets;
-        private static SynchronousSocketListener SocketListener;
-        private static SynchronousSocketReclaimer SocketReclaimer;
+        // Propierties
+        private static int ListeningPort;
+        private static Server server;
 
 
-        public static int Main(String[] args)
+        public static void Main(String[] args)
         {
-            // Initializations
-            ClientSockets = new ArrayList();
-            SocketReclaimer = new SynchronousSocketReclaimer(ref ClientSockets);
-            SocketListener = new SynchronousSocketListener(ref ClientSockets);
-
-            // Events subscriptions
-            SocketListener.ClientAccepted += OnClientAccepted;
-
-            // Start Socket Reclaimer
-            SocketReclaimer.Enable();
-            Thread ThreadReclaim = new Thread(SocketReclaimer.StartReclaiming);
-            ThreadReclaim.Start();
-
-            // Start Socket Listener
-            Thread ThreadListen = new Thread(SocketListener.StartListening);
-            ThreadListen.Start(ListeningPort);
-            ThreadListen.Join();   // Blocks main thread until ThreadListerner ends.
-
-            // Stop Socket Reclaimer
-            SocketReclaimer.Disable();
-            ThreadReclaim.Join();  // Blocks main thread until ThreadReclaim ends.
-
-            // Close all remaining connections.
-            Console.WriteLine("Closing clients...");
-            foreach (Object Client in ClientSockets)
+            if (args.Length>0 && GetPort(args[0], out ListeningPort))
             {
-                ((ClientHandler)Client).Stop();
+                server = new Server(ListeningPort);
+                server.Start();
+                Menu();
             }
-            Console.WriteLine("Server stoped.");
-
-            return 0;
-        }
-
-        private static void OnClientAccepted(object source, ClientAcceptedEventArgs e)
-        {
-            lock (ClientSockets.SyncRoot)
+            else
             {
-                int i = ClientSockets.Add(new ClientHandler(e.Client));
-                ((ClientHandler)ClientSockets[i]).Start();
+                Console.WriteLine("Server port expected as first and only argument (Invalid port or no port supplied).");
             }
         }
 
+        private static bool GetPort(String arg, out int Port)
+        {
+            ushort Aux;
+            if (ushort.TryParse(arg, out Aux))
+            {
+                Port = Aux;
+                if (Aux > 1023) // Well-known ports: 0 to 1023
+                {
+                    return true;
+                }
+                return false;
+            }
+            Port = 0;
+            return false;
+        }
 
+        private static void Menu()
+        {
+            while(true)
+            {
+                String answer;
+                Console.Write("\nStop server (Y/N)? ");
+                answer = Console.ReadLine();
+                if(answer == "Y")
+                {
+                    server.Stop();
+                    break;
+                }
+            }
+
+        }
     }
 
 }

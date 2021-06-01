@@ -9,7 +9,7 @@ namespace client
     class MainClass
     {
 
-        private const int portNum = 10116;
+        private const int portNum = 11111;
 
         static public void Main()
         {

@@ -52,7 +52,7 @@ namespace server
                             data = Encoding.ASCII.GetString(bytes, 0, BytesRead);
 
                             // Show the data on the console.
-                            Console.WriteLine("Text received : {0}", data);
+                            //Console.WriteLine("Text received : {0}", data);
 
                             // Echo the data back to the client.
                             byte[] sendBytes = Encoding.ASCII.GetBytes(data);
