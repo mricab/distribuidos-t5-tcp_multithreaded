@@ -14,7 +14,6 @@ namespace server
         private static int ListeningPort;
         private static Server server;
 
-
         public static void Main(String[] args)
         {
             if (args.Length>0 && GetPort(args[0], out ListeningPort))

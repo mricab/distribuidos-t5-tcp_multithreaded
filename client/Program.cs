@@ -1,7 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace client
@@ -9,76 +6,38 @@ namespace client
     class MainClass
     {
 
-        private const int portNum = 11111;
+        private static int ServerPort;
+        private static Client client;
 
-        static public void Main()
+        public static void Main(String[] args)
         {
-
-            TcpClient tcpClient = new TcpClient();
-            KeepAlive keepAlive;
-
-            try
+            if (args.Length > 0 && GetPort(args[0], out ServerPort))
             {
-                // Conecting to server
-                tcpClient.Connect("localhost", portNum);
-                tcpClient.ReceiveTimeout = 2000; //miliseconds
-                NetworkStream networkStream = tcpClient.GetStream();
-
-                // Keep Alive Thread
-                keepAlive = new KeepAlive(tcpClient);
-                KeepAlive.Start();
-
-                if (networkStream.CanWrite && networkStream.CanRead)
-                {
-
-                    String DataToSend = "";
-
-                    while (DataToSend != "quit")
-                    {
-
-                        Console.WriteLine("\nMessage:");
-                        DataToSend = Console.ReadLine();
-                        if (DataToSend.Length == 0) break;
-
-                        Byte[] sendBytes = Encoding.ASCII.GetBytes(DataToSend);
-                        networkStream.Write(sendBytes, 0, sendBytes.Length);
-
-                        // Reads the NetworkStream into byte buffer.
-                        byte[] bytes = new byte[tcpClient.ReceiveBufferSize];
-                        int BytesRead = networkStream.Read(bytes, 0, (int)tcpClient.ReceiveBufferSize);
-
-                        // Returns the data received from the host to the console.
-                        string returndata = Encoding.ASCII.GetString(bytes, 0, BytesRead);
-                        Console.WriteLine("Returned by host: \r\n{0}", returndata);
-                    }
-                    KeepAlive.Stop();
-                    networkStream.Close();
-                    tcpClient.Close();
-                }
-                else if (!networkStream.CanRead)
-                {
-                    Console.WriteLine("You can not write data to this stream");
-                    tcpClient.Close();
-                }
-                else if (!networkStream.CanWrite)
-                {
-                    Console.WriteLine("You can not read data from this stream");
-                    tcpClient.Close();
-                }
+                client = new Client(ServerPort);
+                client.Start();
             }
-            catch (SocketException)
+            else
             {
-                Console.WriteLine("Server not available!");
+                Console.WriteLine("Server port expected as first and only argument (Invalid port or no port supplied).");
             }
-            catch (System.IO.IOException)
-            {
-                Console.WriteLine("Server not available!");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
+
         } // Main()
+
+        private static bool GetPort(String arg, out int Port)
+        {
+            ushort Aux;
+            if (ushort.TryParse(arg, out Aux))
+            {
+                Port = Aux;
+                if (Aux > 1023) // Well-known ports: 0 to 1023
+                {
+                    return true;
+                }
+                return false;
+            }
+            Port = 0;
+            return false;
+        }
 
     } //MainClass()
 }
